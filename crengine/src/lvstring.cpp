@@ -3289,68 +3289,46 @@ lString32 ByteToUnicode( const lString8 & str, const lChar32 * table )
 
 #if !defined(__SYMBIAN32__) && defined(_WIN32)
 
+// NOTE: the local 8-bit encoding is the active (ANSI) code page, which is
+// UTF-8 for applications opting-in via their manifest (Windows 10 1903+).
+
 lString8 UnicodeToLocal( const lString32 & str )
 {
-   lString8 dst;
-   if (str.empty())
-      return dst;
-   CHAR def_char = '?';
-   BOOL usedDefChar = FALSE;
-   int len = WideCharToMultiByte(
-      CP_ACP,
-      WC_COMPOSITECHECK | WC_DISCARDNS
-       | WC_SEPCHARS | WC_DEFAULTCHAR,
-      str.c_str(),
-      str.length(),
-      NULL,
-      0,
-      &def_char,
-      &usedDefChar
-      );
-   if (len)
-   {
-      dst.insert(0, len, ' ');
-      WideCharToMultiByte(
-         CP_ACP,
-         WC_COMPOSITECHECK | WC_DISCARDNS
-          | WC_SEPCHARS | WC_DEFAULTCHAR,
-         str.c_str(),
-         str.length(),
-         dst.modify(),
-         len,
-         &def_char,
-         &usedDefChar
-         );
-   }
-   return dst;
+    lString8 utf8 = UnicodeToUtf8( str );
+    if ( utf8.empty() || GetACP() == CP_UTF8 )
+        return utf8;
+    lString8 dst;
+    int wlen = MultiByteToWideChar( CP_UTF8, 0, utf8.c_str(), utf8.length(), NULL, 0 );
+    if ( wlen <= 0 )
+        return dst;
+    wchar_t * wbuf = (wchar_t *)malloc( sizeof(wchar_t) * wlen );
+    MultiByteToWideChar( CP_UTF8, 0, utf8.c_str(), utf8.length(), wbuf, wlen );
+    int len = WideCharToMultiByte( CP_ACP, 0, wbuf, wlen, NULL, 0, NULL, NULL );
+    if ( len > 0 ) {
+        dst.insert( 0, len, ' ' );
+        WideCharToMultiByte( CP_ACP, 0, wbuf, wlen, dst.modify(), len, NULL, NULL );
+    }
+    free( wbuf );
+    return dst;
 }
 
 lString32 LocalToUnicode( const lString8 & str )
 {
-   lString32 dst;
-   if (str.empty())
-      return dst;
-   int len = MultiByteToWideChar(
-      CP_ACP,
-      0,
-      str.c_str(),
-      str.length(),
-      NULL,
-      0
-      );
-   if (len)
-   {
-      dst.insert(0, len, ' ');
-      MultiByteToWideChar(
-         CP_ACP,
-         0,
-         str.c_str(),
-         str.length(),
-         dst.modify(),
-         len
-         );
-   }
-   return dst;
+    if ( str.empty() || GetACP() == CP_UTF8 )
+        return Utf8ToUnicode( str );
+    lString8 utf8;
+    int wlen = MultiByteToWideChar( CP_ACP, 0, str.c_str(), str.length(), NULL, 0 );
+    if ( wlen <= 0 )
+        return lString32::empty_str;
+    wchar_t * wbuf = (wchar_t *)malloc( sizeof(wchar_t) * wlen );
+    MultiByteToWideChar( CP_ACP, 0, str.c_str(), str.length(), wbuf, wlen );
+    int len = WideCharToMultiByte( CP_UTF8, 0, wbuf, wlen, NULL, 0, NULL, NULL );
+    if ( len > 0 ) {
+        utf8.insert( 0, len, ' ' );
+        WideCharToMultiByte( CP_UTF8, 0, wbuf, wlen, utf8.modify(), len, NULL, NULL );
+    }
+    free( wbuf );
+    return Utf8ToUnicode( utf8 );
 }
 
 #else

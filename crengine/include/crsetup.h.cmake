@@ -1,9 +1,11 @@
 #ifndef CRSETUP_H_INCLUDED
 #define CRSETUP_H_INCLUDED
 
-/// Yes, even on macOS (Windows is unsupported)…
+/// Yes, even on macOS (but not on Windows, which has its own code paths)…
+#ifndef _WIN32
 #define LINUX 1
 #define _LINUX 1
+#endif
 
 /// Compression.
 #define USE_ZLIB                             @USE_ZLIB@

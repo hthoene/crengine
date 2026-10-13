@@ -1965,7 +1965,7 @@ void LVColorDrawBuf::Resize( int dx, int dy )
     // delete old bitmap
     if ( _dx>0 && _dy>0 && _data )
     {
-#if !defined(__SYMBIAN32__) && defined(_WIN32) && !defined(QT_GL)
+#if CR_WIN32_DIB_DRAWBUF
         if (_drawbmp)
             DeleteObject( _drawbmp );
         if (_drawdc)
@@ -1987,7 +1987,7 @@ void LVColorDrawBuf::Resize( int dx, int dy )
         _dx = dx;
         _dy = dy;
         _rowsize = dx*(_bpp>>3);
-#if !defined(__SYMBIAN32__) && defined(_WIN32) && !defined(QT_GL)
+#if CR_WIN32_DIB_DRAWBUF
         BITMAPINFO bmi = { 0 };
         bmi.bmiHeader.biSize = sizeof(bmi.bmiHeader);
         bmi.bmiHeader.biWidth = _dx;
@@ -3252,7 +3252,7 @@ void LVColorDrawBuf::DrawRescaled(const LVDrawBuf * __restrict src, int x, int y
 /// returns scanline pointer
 lUInt8 * LVColorDrawBuf::GetScanLine( int y ) const
 {
-#if !defined(__SYMBIAN32__) && defined(_WIN32) && !defined(QT_GL)
+#if CR_WIN32_DIB_DRAWBUF
     return _data + _rowsize * (_dy-1-y);
 #else
     return _data + _rowsize * y;
@@ -3274,7 +3274,7 @@ lUInt32 LVColorDrawBuf::GetBlackColor() const
 /// constructor
 LVColorDrawBuf::LVColorDrawBuf(int dx, int dy, int bpp)
 :     LVBaseDrawBuf()
-#if !defined(__SYMBIAN32__) && defined(_WIN32) && !defined(QT_GL)
+#if CR_WIN32_DIB_DRAWBUF
     ,_drawdc(NULL)
     ,_drawbmp(NULL)
 #endif
@@ -3288,7 +3288,7 @@ LVColorDrawBuf::LVColorDrawBuf(int dx, int dy, int bpp)
 /// creates wrapper around external RGBA buffer
 LVColorDrawBuf::LVColorDrawBuf(int dx, int dy, lUInt8 * externalBuffer, int bpp )
 :     LVBaseDrawBuf()
-#if !defined(__SYMBIAN32__) && defined(_WIN32) && !defined(QT_GL)
+#if CR_WIN32_DIB_DRAWBUF
     ,_drawdc(NULL)
     ,_drawbmp(NULL)
 #endif
@@ -3307,7 +3307,7 @@ LVColorDrawBuf::~LVColorDrawBuf()
 {
 	if ( !_ownData )
 		return;
-#if !defined(__SYMBIAN32__) && defined(_WIN32) && !defined(QT_GL)
+#if CR_WIN32_DIB_DRAWBUF
     if (_drawdc)
         DeleteDC(_drawdc);
     if (_drawbmp)

@@ -25,6 +25,15 @@ extern "C" {
 #include <w32std.h>
 #endif
 
+/// Back color buffers with a GDI DIB section: only needed by the legacy
+/// Win32 font rendering (which draws using a device context).
+/// NOTE: the rows of such a buffer are stored bottom-up.
+#if !defined(__SYMBIAN32__) && defined(_WIN32) && !defined(QT_GL) && USE_FREETYPE!=1
+#define CR_WIN32_DIB_DRAWBUF 1
+#else
+#define CR_WIN32_DIB_DRAWBUF 0
+#endif
+
 #include "lvtypes.h"
 #include "lvimg.h"
 
@@ -541,7 +550,7 @@ lUInt8* qSmoothScaleImage(const lUInt8* __restrict src, int sw, int sh, bool ign
 class LVColorDrawBuf : public LVBaseDrawBuf
 {
 private:
-#if !defined(__SYMBIAN32__) && defined(_WIN32) && !defined(QT_GL)
+#if CR_WIN32_DIB_DRAWBUF
     HDC _drawdc;
     HBITMAP _drawbmp;
 #endif
@@ -605,7 +614,7 @@ public:
 #endif
     /// draw line
     virtual void DrawLine(int x0, int y0, int x1, int y1, lUInt32 color0, int length1=1, int length2=0, int direction=0);
-#if !defined(__SYMBIAN32__) && defined(_WIN32) && !defined(QT_GL)
+#if CR_WIN32_DIB_DRAWBUF
     /// returns device context for bitmap buffer
     HDC GetDC() const { return _drawdc; }
 #endif
